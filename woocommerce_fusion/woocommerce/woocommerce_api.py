@@ -516,6 +516,18 @@ def get_wc_parameters_from_filters(args):
 			# e.g. ['WooCommerce Order', 'status', '=', 'trash']
 			params["status"] = filter[3]
 			continue
+		# if filter[1] == "date_created" and filter[2] == "Between":
+		# 	if not filter[3] or not isinstance(filter[3], str):  # Check if it's a valid date string
+		# 		frappe.throw(f"Invalid date range for 'date_created' filter: {filter[3]}")
+
+		# 	# Use the same date for both 'after' and 'before'
+		# 	start_date = filter[3]
+		# 	end_date = filter[3]
+
+		# 	params["after"] = f"{start_date}T00:00:00"
+		# 	params["before"] = f"{end_date}T23:59:59"
+		# 	continue
+
 		frappe.throw(f"Unsupported filter '{filter[2]}' for field '{filter[1]}'")
 
 	return params

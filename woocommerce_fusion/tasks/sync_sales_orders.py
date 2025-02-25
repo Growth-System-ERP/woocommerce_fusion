@@ -29,6 +29,25 @@ def run_sales_order_sync_from_hook(doc, method):
 	):
 		frappe.enqueue(run_sales_order_sync, queue="long", sales_order_name=doc.name)
 
+		
+@frappe.whitelist()
+def run_so_sync(
+	woocommerce_order_names
+	):
+	"""
+	Helper function that prepares arguments for order sync
+	"""
+	if isinstance(woocommerce_order_names, str):
+		woocommerce_order_names = json.loads(woocommerce_order_names)
+
+	for woocommerce_order_name in woocommerce_order_names:
+		result=run_sales_order_sync(woocommerce_order_name=woocommerce_order_name) 
+
+	return result
+
+
+
+
 
 @frappe.whitelist()
 def run_sales_order_sync(
@@ -345,6 +364,7 @@ class SynchroniseSalesOrder(SynchroniseWooCommerce):
 				row.total_amount = total_amount
 				row.allocated_amount = total_amount
 				payment_entry.save()
+				payment_entry.submit()
 
 				# Link created Payment Entry to Sales Order
 				sales_order.woocommerce_payment_entry = payment_entry.name
@@ -471,6 +491,8 @@ class SynchroniseSalesOrder(SynchroniseWooCommerce):
 
 			if wc_server.create_sales_invoice:
 				new_sales_invoice = make_sales_invoice(new_sales_order.name)
+				new_sales_invoice.set_posting_time = 1
+				new_sales_invoice.posting_date = new_sales_order.transaction_date
 				new_sales_invoice.insert(ignore_mandatory=True)
 
 				try:
